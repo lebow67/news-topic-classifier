@@ -1,9 +1,15 @@
 import re
 import joblib
 import gradio as gr
+import nltk
 
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
+
+
+# Download required NLTK resources for local/deployed environments
+nltk.download("stopwords", quiet=True)
+nltk.download("wordnet", quiet=True)
 
 
 # ============================================================
@@ -57,17 +63,14 @@ topic_info = {
         "name": "🌍 World",
         "description": "International news, politics, countries and global events."
     },
-
     2: {
         "name": "⚽ Sports",
         "description": "Sports events, teams, players, matches and competitions."
     },
-
     3: {
         "name": "💼 Business",
         "description": "Companies, markets, finance, economy and business activities."
     },
-
     4: {
         "name": "🔬 Science / Technology",
         "description": "Science, technology, computing, research and innovation."
@@ -134,10 +137,6 @@ def clear_fields():
 
 with gr.Blocks(title="News Topic Classifier") as demo:
 
-    # --------------------------------------------------------
-    # Header
-    # --------------------------------------------------------
-
     gr.Markdown(
         """
         # 📰 News Topic Classifier
@@ -153,106 +152,59 @@ with gr.Blocks(title="News Topic Classifier") as demo:
         """
         **Available Topics**
 
-        🌍 **World** &nbsp;&nbsp; 
-        ⚽ **Sports** &nbsp;&nbsp; 
-        💼 **Business** &nbsp;&nbsp; 
+        🌍 **World** &nbsp;&nbsp;
+        ⚽ **Sports** &nbsp;&nbsp;
+        💼 **Business** &nbsp;&nbsp;
         🔬 **Science / Technology**
         """
     )
 
-    # --------------------------------------------------------
-    # Main Layout
-    # --------------------------------------------------------
-
     with gr.Row():
-
-        # Input section
         with gr.Column(scale=2):
-
             news_input = gr.Textbox(
                 label="News Article / Headline",
-                placeholder=(
-                    "Enter a news headline or article here..."
-                ),
+                placeholder="Enter a news headline or article here...",
                 lines=12
             )
 
             with gr.Row():
+                predict_button = gr.Button("🔍 Classify News", variant="primary")
+                clear_button = gr.Button("🗑️ Clear")
 
-                predict_button = gr.Button(
-                    "🔍 Classify News",
-                    variant="primary"
-                )
-
-                clear_button = gr.Button(
-                    "🗑️ Clear"
-                )
-
-        # Output section
         with gr.Column(scale=2):
-
-            prediction_output = gr.Markdown(
-                value="Prediction will appear here."
-            )
-
+            prediction_output = gr.Markdown(value="Prediction will appear here.")
             confidence_output = gr.Label(
                 label="Topic Confidence",
                 num_top_classes=4
             )
 
-    # --------------------------------------------------------
-    # Examples
-    # --------------------------------------------------------
-
     gr.Markdown("## 💡 Try an Example")
 
     gr.Examples(
         examples=[
-            [
-                "The United Nations announced a new international agreement between several countries to improve global cooperation."
-            ],
-            [
-                "The football team secured a dramatic victory in the championship final after scoring in the final minutes."
-            ],
-            [
-                "The company reported strong quarterly earnings as revenue increased significantly compared with last year."
-            ],
-            [
-                "Researchers have developed a new artificial intelligence system capable of analyzing complex scientific data."
-            ]
+            ["The United Nations announced a new international agreement between several countries to improve global cooperation."],
+            ["The football team secured a dramatic victory in the championship final after scoring in the final minutes."],
+            ["The company reported strong quarterly earnings as revenue increased significantly compared with last year."],
+            ["Researchers have developed a new artificial intelligence system capable of analyzing complex scientific data."]
         ],
         inputs=news_input
     )
-
-    # --------------------------------------------------------
-    # How It Works
-    # --------------------------------------------------------
 
     gr.Markdown(
         """
         ## ⚙️ How It Works
 
-        **1. Text Input**  
-        The user enters a news headline or article.
+        **1. Text Input** — The user enters a news headline or article.
 
-        **2. NLP Preprocessing**  
-        The text is cleaned, tokenized, stopwords are removed,
-        and words are lemmatized.
+        **2. NLP Preprocessing** — The text is cleaned, tokenized, stopwords are removed, and words are lemmatized.
 
-        **3. TF-IDF Vectorization**  
-        The processed text is converted into numerical features.
+        **3. TF-IDF Vectorization** — The processed text is converted into numerical features.
 
-        **4. Logistic Regression**  
-        The trained machine learning model predicts the news category.
+        **4. Logistic Regression** — The trained machine learning model predicts the news category.
 
-        **5. Confidence Scores**  
-        The application displays the probability associated with each topic.
+        **5. Confidence Scores** — The application displays the probability associated with each topic.
         """
     )
-
-    # --------------------------------------------------------
-    # Model Information
-    # --------------------------------------------------------
 
     gr.Markdown(
         """
@@ -271,33 +223,18 @@ with gr.Blocks(title="News Topic Classifier") as demo:
         """
     )
 
-    # --------------------------------------------------------
-    # Button Actions
-    # --------------------------------------------------------
-
     predict_button.click(
         fn=predict_topic,
         inputs=news_input,
-        outputs=[
-            prediction_output,
-            confidence_output
-        ]
+        outputs=[prediction_output, confidence_output]
     )
 
     clear_button.click(
         fn=clear_fields,
         inputs=[],
-        outputs=[
-            news_input,
-            prediction_output,
-            confidence_output
-        ]
+        outputs=[news_input, prediction_output, confidence_output]
     )
 
-
-# ============================================================
-# LAUNCH
-# ============================================================
 
 if __name__ == "__main__":
     demo.launch()
